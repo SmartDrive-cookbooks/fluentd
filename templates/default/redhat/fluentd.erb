@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# chkconfig: 345 80 20
+# description: fluentd
+# processname: fluentd
+
+progname=fluentd
+prog=/usr/local/rbenv/shims/fluentd
+pidfile=/var/run/fluentd.pid
+conffile=<%= @conf_dir %>/fluentd.conf
+logdir=<%= @log_dir %>
+logfile=${logdir}/fluentd.log
+lockfile=/var/lock/subsys/fluentd
+
+. /etc/init.d/functions
+
+RETVAL=0
+
+if [ ! -d ${logdir} ]
+then
+        mkdir ${logdir}
+fi
+
+start() {
+        echo -n $"Starting ${progname}: "
+        #[[ ! -e ${pidfile} ]] && ${prog} -c ${conffile} -d ${pidfile} -o ${logfile}
+        daemon ${prog} -c ${conffile} -d ${pidfile} -o ${logfile}
+        RETVAL=$?
+        echo
+        [ $RETVAL = 0 ] && touch ${lockfile}
+        return $RETVAL
+}
+
+stop() {
+        echo -n $"Stopping ${progname}: "
+#       kill $(cat ${pidfile}); rm -f ${pidfile}
+        killproc ${prog}
+        RETVAL=$?
+        echo
+        [ $RETVAL = 0 ] && rm -f ${lockfile}; rm -f ${pidfile}
+        return $RETVAL
+}
+
+case "$1" in
+        start)
+                start
+                ;;
+        stop)
+                stop
+                ;;
+        reload)
+                action $"Reloading ${progname}: " killproc $progname -HUP
+                ;;
+        *)
+                echo "Usage: /etc/init.d/fluentd [start|stop|reload]"
+                ;;
+esac
+
+exit $RETVAL
+
