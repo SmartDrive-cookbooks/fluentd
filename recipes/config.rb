@@ -17,7 +17,7 @@ fluentd_dir = node["fluentd"]["directory"]
 end
 
 if node["fluentd"]["includes"]
-	directory fluentd_dir["inclued"] do
+	directory fluentd_dir["include"] do
 		action :create
 	end
 end
